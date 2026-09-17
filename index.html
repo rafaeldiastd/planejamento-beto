@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Contador de dias</title>
+<style>
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+  }
+  .container {
+    text-align: center;
+  }
+  h1 {
+    font-size: 2rem;
+    margin: 0 0 20px 0;
+  }
+  #contador {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #ffdd00;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="titulo"></h1>
+    <div id="contador"></div>
+  </div>
+
+  <script>
+    const MS_POR_DIA = 24 * 60 * 60 * 1000;
+    const dataBase = Date.UTC(2025, 6, 24, 0, 0, 0);
+
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function atualizar() {
+      const diff = Date.now() - dataBase;
+      const dias = Math.floor(diff / MS_POR_DIA);
+      const horas = Math.floor((diff % MS_POR_DIA) / (60 * 60 * 1000));
+      const minutos = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+      const segundos = Math.floor((diff % (60 * 1000)) / 1000);
+
+      document.getElementById('titulo').textContent = dias + ' dias esperando o planejamento';
+      document.getElementById('contador').textContent =
+        dias + ' ' + pad(horas) + ':' + pad(minutos) + ':' + pad(segundos);
+    }
+
+    atualizar();
+    setInterval(atualizar, 1000);
+  </script>
+</body>
+</html>
