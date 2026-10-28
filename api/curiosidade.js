@@ -1,6 +1,8 @@
 const INICIO = new Date('2024-12-10T16:30:00-03:00').getTime();
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
-const MODELO = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+const TENTATIVAS = 3;
+const ESPERA_MS = 1000;
+const MODELO = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 
 // Um tema por dia (rotativo) para a curiosidade não repetir sempre o mesmo assunto.
 const TEMAS = [
@@ -42,7 +44,7 @@ export function montarPrompt(dias) {
 
 async function chamarGemini(dias, apiKey, fetchImpl = fetch) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:generateContent`;
-  const resp = await fetchImpl(url, {
+  const init = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
     body: JSON.stringify({
@@ -58,7 +60,15 @@ async function chamarGemini(dias, apiKey, fetchImpl = fetch) {
         },
       },
     }),
-  });
+  };
+
+  // 503/429 costumam ser picos temporários de demanda: tenta de novo antes de desistir.
+  let resp;
+  for (let tentativa = 1; tentativa <= TENTATIVAS; tentativa++) {
+    resp = await fetchImpl(url, init);
+    if (resp.ok || ![429, 503].includes(resp.status) || tentativa === TENTATIVAS) break;
+    await new Promise((r) => setTimeout(r, ESPERA_MS * tentativa));
+  }
   if (!resp.ok) throw new Error(`Gemini ${resp.status}: ${await resp.text()}`);
   const data = await resp.json();
   const bruto = data.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') ?? '';
