@@ -1,0 +1,28 @@
+name: Curiosidade semanal
+
+on:
+  schedule:
+    - cron: '0 12 * * 1' # toda segunda, 12:00 UTC (09:00 em Brasília)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Gerar curiosidade com o Gemini
+        run: node scripts/gerar-curiosidade.mjs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      - name: Salvar no repositório
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add curiosidade.json
+          git diff --cached --quiet || (git commit -m "chore: nova curiosidade da semana" && git push)
