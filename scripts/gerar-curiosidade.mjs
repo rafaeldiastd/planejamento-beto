@@ -64,7 +64,10 @@ export async function gerarCuriosidade(apiKey, fetchImpl, agora = Date.now()) {
       return { geradaEm: new Date(agora).toISOString(), evento, inicio, fim, duracao, graca };
     }
     console.warn(`Candidato rejeitado (${r.motivo}): ${candidato?.evento}`);
-    if (candidato?.evento) descartados.push(candidato.evento);
+    if (candidato?.evento) {
+      const duracao = r.duracao === undefined ? '' : ` (durou ${r.duracao} dias: ${r.duracao < dias ? 'curto' : 'longo'} demais)`;
+      descartados.push(candidato.evento + duracao);
+    }
   }
   throw new Error('Nenhum acontecimento válido após várias tentativas');
 }
