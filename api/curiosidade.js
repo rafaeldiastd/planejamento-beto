@@ -62,6 +62,10 @@ async function chamarGemini(dias, apiKey, fetchImpl = fetch) {
   if (!resp.ok) throw new Error(`Gemini ${resp.status}: ${await resp.text()}`);
   const data = await resp.json();
   const bruto = data.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') ?? '';
+  if (!bruto) {
+    const motivo = data.candidates?.[0]?.finishReason ?? data.promptFeedback?.blockReason ?? 'desconhecido';
+    throw new Error(`Gemini sem conteúdo (motivo: ${motivo})`);
+  }
   const texto = JSON.parse(bruto).texto?.trim();
   if (!texto) throw new Error('Resposta do Gemini sem texto');
   return texto;
@@ -89,6 +93,7 @@ export default async function handler(req, res) {
     res.status(200).json({ dias, texto });
   } catch (e) {
     console.error(e);
-    res.status(502).json({ erro: 'Falha ao gerar curiosidade' });
+    // A mensagem vem da API do Gemini ou do parser; a chave nunca entra nela.
+    res.status(502).json({ erro: 'Falha ao gerar curiosidade', detalhe: String(e.message).slice(0, 300) });
   }
 }
