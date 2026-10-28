@@ -2,60 +2,261 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contador de dias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --fundo: #121212;
+    --card: #1b1b1b;
+    --card-baixo: #161616;
+    --digito: #e9e9e9;
+    --rotulo: #cfcfcf;
+  }
+  * { box-sizing: border-box; }
   html, body {
     margin: 0;
-    height: 100%;
-    background: #000;
+    min-height: 100%;
+    background: radial-gradient(ellipse at 50% 35%, #1c1c1c 0%, var(--fundo) 70%);
     color: #fff;
+    font-family: 'Poppins', Arial, sans-serif;
+  }
+  body {
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: Arial, sans-serif;
+    padding: 2rem 1rem;
   }
   .container {
     text-align: center;
+    width: 100%;
   }
   h1 {
-    font-size: 2rem;
-    margin: 0 0 20px 0;
+    margin: 0 0 clamp(1.5rem, 5vw, 3rem);
+    font-size: clamp(1.4rem, 5.5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--digito);
   }
-  #contador {
-    font-size: 4rem;
-    font-weight: bold;
-    color: #ffdd00;
+
+  .relogio {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.35em;
+    font-size: clamp(1.9rem, 9vw, 5.5rem);
   }
+  .unidade { display: flex; flex-direction: column; align-items: center; }
+  .rotulo {
+    margin-top: 0.9rem;
+    font-size: clamp(0.6rem, 2.4vw, 1.1rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--rotulo);
+  }
+
+  /* Cartão que vira */
+  .cartao {
+    position: relative;
+    height: 1.5em;
+    width: calc(var(--digitos) * 0.64em + 0.7em);
+    perspective: 12em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--digito);
+    filter: drop-shadow(0 0.12em 0.18em rgba(0, 0, 0, 0.6));
+  }
+  .metade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50%;
+    overflow: hidden;
+    backface-visibility: hidden;
+  }
+  .metade span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 200%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .topo {
+    top: 0;
+    border-radius: 0.14em 0.14em 0 0;
+    transform-origin: bottom;
+    background: linear-gradient(#222, var(--card));
+  }
+  .topo span { top: 0; }
+  .baixo {
+    bottom: 0;
+    border-radius: 0 0 0.14em 0.14em;
+    transform-origin: top;
+    background: linear-gradient(var(--card-baixo), #131313);
+  }
+  .baixo span { top: -100%; }
+
+  .aba-topo { z-index: 3; visibility: hidden; }
+  .aba-baixo { z-index: 2; transform: rotateX(90deg); }
+  .virando .aba-topo {
+    visibility: visible;
+    animation: cai-topo 0.3s ease-in forwards;
+  }
+  .virando .aba-baixo {
+    animation: cai-baixo 0.3s 0.3s ease-out forwards;
+  }
+  @keyframes cai-topo   { from { transform: rotateX(0); }      to { transform: rotateX(-90deg); } }
+  @keyframes cai-baixo  { from { transform: rotateX(90deg); }  to { transform: rotateX(0); } }
+
+  /* Linha do meio e pinos laterais */
+  .cartao::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 2px;
+    margin-top: -1px;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 5;
+  }
+  .cartao::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -0.06em;
+    right: -0.06em;
+    height: 0.2em;
+    margin-top: -0.1em;
+    z-index: 6;
+    background:
+      linear-gradient(#555, #222) left / 0.1em 100% no-repeat,
+      linear-gradient(#555, #222) right / 0.1em 100% no-repeat;
+    border-radius: 0.04em;
+  }
+
+  #curiosidade {
+    max-width: 36rem;
+    margin: clamp(2rem, 6vw, 3.5rem) auto 0;
+    padding: 0 0.5rem;
+    font-size: clamp(0.9rem, 2.6vw, 1.1rem);
+    line-height: 1.6;
+    color: #9a9a9a;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  #curiosidade.visivel { opacity: 1; }
 </style>
 </head>
 <body>
   <div class="container">
-    <h1 id="titulo"></h1>
-    <div id="contador"></div>
+    <h1>Esperando o planejamento</h1>
+
+    <div class="relogio" id="relogio">
+      <div class="unidade">
+        <div class="cartao" data-unidade="dias" style="--digitos:3"></div>
+        <div class="rotulo">Dias</div>
+      </div>
+      <div class="unidade">
+        <div class="cartao" data-unidade="horas" style="--digitos:2"></div>
+        <div class="rotulo">Horas</div>
+      </div>
+      <div class="unidade">
+        <div class="cartao" data-unidade="minutos" style="--digitos:2"></div>
+        <div class="rotulo">Minutos</div>
+      </div>
+      <div class="unidade">
+        <div class="cartao" data-unidade="segundos" style="--digitos:2"></div>
+        <div class="rotulo">Segundos</div>
+      </div>
+    </div>
+
+    <p id="curiosidade"></p>
   </div>
 
   <script>
     const MS_POR_DIA = 24 * 60 * 60 * 1000;
-const dataBase = new Date(2024, 11, 10, 16, 30, 0).getTime();
+    // Mesma data/fuso usada em api/curiosidade.js
+    const dataBase = new Date('2024-12-10T16:30:00-03:00').getTime();
 
-    function pad(n) {
-      return String(n).padStart(2, '0');
+    const cartoes = {};
+    document.querySelectorAll('.cartao').forEach((el) => {
+      el.innerHTML =
+        '<div class="metade topo"><span></span></div>' +
+        '<div class="metade baixo"><span></span></div>' +
+        '<div class="metade topo aba-topo"><span></span></div>' +
+        '<div class="metade baixo aba-baixo"><span></span></div>';
+      cartoes[el.dataset.unidade] = {
+        el,
+        valor: null,
+        topo: el.children[0].firstChild,
+        baixo: el.children[1].firstChild,
+        abaTopo: el.children[2].firstChild,
+        abaBaixo: el.children[3].firstChild,
+        timer: null,
+      };
+    });
+
+    function definir(c, valor, animar) {
+      if (c.valor === valor) return;
+      const antigo = c.valor;
+      c.valor = valor;
+
+      // Dias podem ganhar um dígito (ex.: 1000): o cartão acompanha.
+      c.el.style.setProperty('--digitos', Math.max(valor.length, c.el.dataset.unidade === 'dias' ? 3 : 2));
+
+      if (!animar || antigo === null) {
+        c.topo.textContent = c.baixo.textContent = c.abaTopo.textContent = c.abaBaixo.textContent = valor;
+        return;
+      }
+
+      clearTimeout(c.timer);
+      c.el.classList.remove('virando');
+      void c.el.offsetWidth; // reinicia a animação
+      c.topo.textContent = valor;       // metade de cima já mostra o novo
+      c.abaTopo.textContent = antigo;   // aba que cai mostra o antigo
+      c.abaBaixo.textContent = valor;   // aba que sobe mostra o novo
+      c.el.classList.add('virando');
+      c.timer = setTimeout(() => {
+        c.baixo.textContent = valor;
+        c.el.classList.remove('virando');
+      }, 620);
     }
 
-    function atualizar() {
-      const diff = Date.now() - dataBase;
-      const dias = Math.floor(diff / MS_POR_DIA);
-      const horas = Math.floor((diff % MS_POR_DIA) / (60 * 60 * 1000));
-      const minutos = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-      const segundos = Math.floor((diff % (60 * 1000)) / 1000);
-
-      document.getElementById('titulo').textContent = dias + ' dias esperando o planejamento';
-      document.getElementById('contador').textContent =
-        dias + ' ' + pad(horas) + ':' + pad(minutos) + ':' + pad(segundos);
+    function pad(n, tam) {
+      return String(n).padStart(tam, '0');
     }
 
-    atualizar();
+    function atualizar(animar = true) {
+      const diff = Math.max(0, Date.now() - dataBase);
+      definir(cartoes.dias, pad(Math.floor(diff / MS_POR_DIA), 3), animar);
+      definir(cartoes.horas, pad(Math.floor((diff % MS_POR_DIA) / 3600000), 2), animar);
+      definir(cartoes.minutos, pad(Math.floor((diff % 3600000) / 60000), 2), animar);
+      definir(cartoes.segundos, pad(Math.floor((diff % 60000) / 1000), 2), animar);
+    }
+
+    async function carregarCuriosidade() {
+      try {
+        const resp = await fetch('/api/curiosidade');
+        if (!resp.ok) return;
+        const { texto } = await resp.json();
+        const el = document.getElementById('curiosidade');
+        el.textContent = texto;
+        el.classList.add('visivel');
+      } catch (e) {
+        // sem curiosidade, o contador segue normal
+      }
+    }
+
+    atualizar(false);
     setInterval(atualizar, 1000);
+    carregarCuriosidade();
   </script>
 </body>
 </html>
